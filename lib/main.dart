@@ -106,11 +106,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, String>> reminders = [
-    {"title": "Take medicine", "time": "10:00 AM"},
-    {"title": "Drink water", "time": "Every 2 hours"},
-    {"title": "Doctor appointment", "time": "Tomorrow, 4:00 PM"},
-  ];
+  List<Map<String, String>> reminders = [];
 
   int gamesCompleted = 0;
   int bestScore = 0;
@@ -125,6 +121,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     loadProgress();
+    loadReminders();
   }
 
   // ==========================================================
@@ -191,6 +188,97 @@ class _HomePageState extends State<HomePage> {
 
       history = loadedHistory.reversed.take(5).toList();
     });
+  }
+
+  Future<void> loadReminders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList('reminders') ?? [];
+
+    final loaded = saved.map((entry) {
+      final parts = entry.split('|');
+      return {
+        "title": parts.isNotEmpty ? parts[0] : "",
+        "time": parts.length > 1 ? parts[1] : "",
+      };
+    }).toList();
+
+    if (!mounted) return;
+    setState(() => reminders = loaded);
+  }
+
+  Future<void> saveReminders() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      'reminders',
+      reminders.map((r) => '${r["title"]}|${r["time"]}').toList(),
+    );
+  }
+
+  Future<void> addReminder() async {
+    final titleController = TextEditingController();
+    TimeOfDay? pickedTime;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('New Reminder'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                style: const TextStyle(fontSize: 18),
+                decoration: const InputDecoration(
+                  labelText: 'What to remember',
+                  hintText: 'e.g. Take medicine',
+                ),
+              ),
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.access_time),
+                label: Text(
+                  pickedTime == null
+                      ? 'Choose time'
+                      : pickedTime!.format(context),
+                  style: const TextStyle(fontSize: 17),
+                ),
+                onPressed: () async {
+                  final t = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (t != null) setDialogState(() => pickedTime = t);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != true) return;
+    if (titleController.text.trim().isEmpty || pickedTime == null) return;
+    if (!mounted) return;
+
+    setState(() {
+      reminders.add({
+        "title": titleController.text.trim(),
+        "time": pickedTime!.format(context),
+      });
+    });
+
+    await saveReminders();
   }
 
   // ==========================================================
@@ -406,37 +494,51 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 15),
 
-              Column(
-                children: reminders.map((reminder) {
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    child: ListTile(
-                      leading: const Icon(Icons.notifications_active),
-                      title: Text(
-                        reminder["title"]!,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+              if (reminders.isEmpty)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Text(
+                    'No reminders yet.\nTap "Add Reminder" to create one.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 17),
+                  ),
+                ),
+
+              if (reminders.isNotEmpty)
+                Column(
+                  children: reminders.map((reminder) {
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      child: ListTile(
+                        leading: const Icon(Icons.notifications_active),
+                        title: Text(
+                          reminder["title"]!,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(reminder["time"]!),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () async {
+                            setState(() => reminders.remove(reminder));
+                            await saveReminders();
+                          },
                         ),
                       ),
-                      subtitle: Text(reminder["time"]!),
-                      trailing: const Icon(Icons.chevron_right),
-                    ),
-                  );
-                }).toList(),
-              ),
+                    );
+                  }).toList(),
+                ),
 
               const SizedBox(height: 10),
 
               OutlinedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "Reminder creation will be available soon.",
-                      ),
-                    ),
-                  );
-                },
+                onPressed: addReminder,
                 icon: const Icon(Icons.add_alarm),
                 label: const Text("Add Reminder"),
               ),
@@ -2288,7 +2390,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
   // SELECT COLOR
   // ==========================================================
 
-  void selectColor(Color color) {
+  void selectColor(Color color) async {
 
     if (gameState != 'recall') {
       return;
@@ -2314,7 +2416,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
       reactionTime =
           stopwatch.elapsedMilliseconds / 1000;
 
-      calculateScore();
+      await calculateScore();
     }
 
     setState(() {});
@@ -2324,7 +2426,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
   // CALCULATE SCORE
   // ==========================================================
 
-  void calculateScore() {
+  Future<void> calculateScore() async {
 
     int correct = 0;
 
@@ -2393,7 +2495,17 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
 
     score = overallScore.round();
 
-    final List<double> scores = [overallScore];
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getStringList('scores') ?? [];
+
+    final allScores = stored
+        .map((e) => double.tryParse(e) ?? 0)
+        .toList()
+      ..add(overallScore);
+
+    final scores = allScores.length > 5
+        ? allScores.sublist(allScores.length - 5)
+        : allScores;
 
     aiAnalysis = CognitiveAI.analyze(
       score: overallScore,
@@ -2402,6 +2514,8 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
       mistakes: mistakes,
       recentScores: scores,
     );
+
+    final playedDifficulty = difficulty;
 
     // ========================================================
     // ADAPTIVE DIFFICULTY
@@ -2420,7 +2534,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
       }
     }
 
-    saveResult();
+    saveResult(playedDifficulty);
 
     setState(() {
       gameState = 'result';
@@ -2431,7 +2545,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
   // SAVE RESULT
   // ==========================================================
 
-  Future<void> saveResult() async {
+  Future<void> saveResult(int playedDifficulty) async {
 
     final prefs =
         await SharedPreferences.getInstance();
@@ -2461,7 +2575,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
     );
 
     difficulties.add(
-      difficulty.toString(),
+      playedDifficulty.toString(),
     );
 
     if (scores.length > 50) {
