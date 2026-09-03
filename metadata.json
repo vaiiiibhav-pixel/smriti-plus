@@ -1,0 +1,6 @@
+{
+  "name": "Smriti+",
+  "description": "AI-Powered Cognitive & Memory Assistance Platform for Elderly Care",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
