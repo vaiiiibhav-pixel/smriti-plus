@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 class CognitiveAI {
   static Map<String, dynamic> analyze({
@@ -66,7 +69,64 @@ class CognitiveAI {
     };
   }
 }
-void main() {
+
+class ReminderService {
+  static final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+
+  static Future<void> init() async {
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+
+    await _plugin.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      ),
+    );
+
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await android?.requestNotificationsPermission();
+    await android?.requestExactAlarmsPermission();
+  }
+
+  static Future<void> schedule({
+    required int id,
+    required String title,
+    required TimeOfDay time,
+  }) async {
+    final now = tz.TZDateTime.now(tz.local);
+    var when = tz.TZDateTime(
+        tz.local, now.year, now.month, now.day, time.hour, time.minute);
+    if (when.isBefore(now)) when = when.add(const Duration(days: 1));
+
+    await _plugin.zonedSchedule(
+      id,
+      'SMRITI+ Reminder',
+      title,
+      when,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'smriti_reminders',
+          'Reminders',
+          channelDescription: 'Medication and daily reminders',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  static Future<void> cancel(int id) => _plugin.cancel(id);
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ReminderService.init();
   runApp(const SmritiApp());
 }
 
@@ -279,6 +339,11 @@ class _HomePageState extends State<HomePage> {
     });
 
     await saveReminders();
+    await ReminderService.schedule(
+      id: reminders.length - 1,
+      title: titleController.text.trim(),
+      time: pickedTime!,
+    );
   }
 
   // ==========================================================
@@ -526,6 +591,7 @@ class _HomePageState extends State<HomePage> {
                         trailing: IconButton(
                           icon: const Icon(Icons.delete_outline),
                           onPressed: () async {
+                            await ReminderService.cancel(reminders.indexOf(reminder));
                             setState(() => reminders.remove(reminder));
                             await saveReminders();
                           },
