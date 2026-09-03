@@ -901,6 +901,7 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
   int currentDifficulty = 3;
 
   List<Map<String, dynamic>> history = [];
+  List<Map<String, String>> reminders = [];
 
   @override
   void initState() {
@@ -928,6 +929,15 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
 
     final difficulties =
         prefs.getStringList('difficulties') ?? [];
+
+    final savedReminders = prefs.getStringList('reminders') ?? [];
+    final loadedReminders = savedReminders.map((entry) {
+      final parts = entry.split('|');
+      return {
+        "title": parts.isNotEmpty ? parts[0] : "",
+        "time": parts.length > 1 ? parts[1] : "",
+      };
+    }).toList();
 
     int totalScore = 0;
 
@@ -999,6 +1009,8 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
 
       history =
           loadedHistory.reversed.take(8).toList();
+
+      reminders = loadedReminders;
 
       loading = false;
     });
@@ -1390,26 +1402,21 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
 
                     const SizedBox(height: 14),
 
-                    buildDashboardReminder(
-                      icon: '💊',
-                      title: 'Medicine',
-                      subtitle: 'Daily medication',
-                      time: '10:00 AM',
-                    ),
-
-                    buildDashboardReminder(
-                      icon: '💧',
-                      title: 'Drink Water',
-                      subtitle: 'Hydration reminder',
-                      time: 'Now',
-                    ),
-
-                    buildDashboardReminder(
-                      icon: '🏥',
-                      title: 'Doctor Appointment',
-                      subtitle: 'Scheduled appointment',
-                      time: 'Tomorrow',
-                    ),
+                    if (reminders.isEmpty)
+                      buildActivityTile(
+                        icon: Icons.info_outline_rounded,
+                        title: 'No reminders set',
+                        subtitle: 'Reminders added by Ram Ji will appear here.',
+                      )
+                    else
+                      ...reminders.map(
+                        (r) => buildDashboardReminder(
+                          icon: '🔔',
+                          title: r["title"] ?? '',
+                          subtitle: 'Daily reminder',
+                          time: r["time"] ?? '',
+                        ),
+                      ),
 
                     const SizedBox(height: 25),
 
@@ -3515,6 +3522,22 @@ class _VoiceAssistantPageState extends State<VoiceAssistantPage> {
   String recognizedText = "Tap the microphone and speak";
   String response = "Hello! How can I help you today?";
 
+  Future<String> describeReminders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList('reminders') ?? [];
+
+    if (saved.isEmpty) {
+      return "You have no reminders set at the moment.";
+    }
+
+    final parts = saved.map((entry) {
+      final bits = entry.split('|');
+      return '${bits[0]} at ${bits.length > 1 ? bits[1] : ""}';
+    }).join(', ');
+
+    return "You have ${saved.length} reminder${saved.length == 1 ? '' : 's'}: $parts.";
+  }
+
   Future<void> speak(String text) async {
     await flutterTts.setLanguage("en-IN");
     await flutterTts.setSpeechRate(0.45);
@@ -3562,7 +3585,7 @@ class _VoiceAssistantPageState extends State<VoiceAssistantPage> {
     });
   }
 
-  void processCommand(String command) {
+  Future<void> processCommand(String command) async {
     final text = command.toLowerCase();
 
     final isMemoryCommand =
@@ -3616,15 +3639,15 @@ class _VoiceAssistantPageState extends State<VoiceAssistantPage> {
 
       return;
     } else if (isReminderCommand) {
-      newResponse =
-          "You have reminders for medicine at 10 AM, drinking water, and your doctor appointment tomorrow.";
+      newResponse = await describeReminders();
     } else if (isMedicineCommand) {
-      newResponse = "Your medicine reminder is scheduled for 10 AM.";
+      newResponse = await describeReminders();
     } else if (isPerformanceCommand) {
       newResponse =
           "Your recent cognitive performance is being monitored. Keep practicing your memory exercises.";
     } else if (text.contains("hello") ||
-        text.contains("hi")) {
+        text.trim() == "hi" ||
+        text.startsWith("hi ")) {
       newResponse = "Hello! It is nice to hear from you. How can I help?";
     } else {
       newResponse =
