@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -144,10 +145,8 @@ class SmritiApp extends StatelessWidget {
       title: 'SMRITI+',
       theme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'Arial',
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-        ),
+        textTheme: GoogleFonts.notoSansTextTheme(),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
       ),
       home: const HomePage(),
     );
@@ -167,6 +166,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Map<String, String>> reminders = [];
+  String userName = '';
+
+  String get greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  }
 
   int gamesCompleted = 0;
   int bestScore = 0;
@@ -182,6 +189,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     loadProgress();
     loadReminders();
+    loadName();
   }
 
   // ==========================================================
@@ -272,6 +280,45 @@ class _HomePageState extends State<HomePage> {
       'reminders',
       reminders.map((r) => '${r["title"]}|${r["time"]}').toList(),
     );
+  }
+
+  Future<void> loadName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('userName') ?? '';
+    if (!mounted) return;
+    if (saved.isEmpty) {
+      askName();
+    } else {
+      setState(() => userName = saved);
+    }
+  }
+
+  Future<void> askName() async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Welcome to SMRITI+'),
+        content: TextField(
+          controller: controller,
+          style: const TextStyle(fontSize: 20),
+          decoration: const InputDecoration(labelText: 'Your name'),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+
+    if (name == null || name.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('userName', name);
+    if (!mounted) return;
+    setState(() => userName = name);
   }
 
   Future<void> addReminder() async {
@@ -417,18 +464,16 @@ class _HomePageState extends State<HomePage> {
 
               const SizedBox(height: 5),
 
-              const Text(
-                'Good Morning',
-                style: TextStyle(
-                  fontSize: 21,
-                ),
+              Text(
+                greeting,
+                style: const TextStyle(fontSize: 21),
               ),
 
               const SizedBox(height: 10),
 
-              const Text(
-                'Hello, Ram Ji 👋',
-                style: TextStyle(
+              Text(
+                userName.isEmpty ? 'Hello 👋' : 'Hello, $userName 👋',
+                style: const TextStyle(
                   fontSize: 25,
                   fontWeight: FontWeight.w600,
                 ),
@@ -464,11 +509,8 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(22),
 
                 decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: Colors.blue.shade100,
-                  ),
                 ),
 
                 child: Column(
@@ -743,25 +785,25 @@ class _HomePageState extends State<HomePage> {
       children: [
 
         progressCard(
-          icon: '🎮',
+          icon: Icons.sports_esports_rounded,
           title: 'Games',
           value: '$gamesCompleted',
         ),
 
         progressCard(
-          icon: '🏆',
+          icon: Icons.emoji_events_rounded,
           title: 'Best Score',
           value: '$bestScore',
         ),
 
         progressCard(
-          icon: '🧠',
+          icon: Icons.psychology_rounded,
           title: 'Average Score',
           value: averageScore.toStringAsFixed(0),
         ),
 
         progressCard(
-          icon: '🎯',
+          icon: Icons.gps_fixed_rounded,
           title: 'Accuracy',
           value: '${averageAccuracy.toStringAsFixed(0)}%',
         ),
@@ -774,7 +816,7 @@ class _HomePageState extends State<HomePage> {
   // ==========================================================
 
   Widget progressCard({
-    required String icon,
+    required IconData icon,
     required String title,
     required String value,
   }) {
@@ -787,11 +829,10 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           children: [
 
-            Text(
+            Icon(
               icon,
-              style: const TextStyle(
-                fontSize: 28,
-              ),
+              size: 28,
+              color: Colors.indigo,
             ),
 
             const SizedBox(width: 10),
@@ -957,6 +998,8 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
 
   bool loading = true;
 
+  String userName = 'the user';
+
   int gamesCompleted = 0;
   int bestScore = 0;
 
@@ -1073,6 +1116,8 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
       currentDifficulty =
           prefs.getInt('difficulty') ?? 3;
 
+      userName = prefs.getString('userName') ?? 'the user';
+
       history =
           loadedHistory.reversed.take(8).toList();
 
@@ -1136,7 +1181,7 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
     }
 
     if (averageScore >= 70) {
-      return 'Ram Ji is showing good cognitive exercise '
+      return '$userName is showing good cognitive exercise '
           'performance based on recent sessions.';
     }
 
@@ -1295,7 +1340,7 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
                     const SizedBox(height: 6),
 
                     Text(
-                      'Monitor Ram Ji\'s cognitive activity '
+                      'Monitor $userName\'s cognitive activity '
                       'and daily wellness.',
                       style: TextStyle(
                         fontSize: 16,
@@ -1377,12 +1422,16 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: Colors.blue.shade50,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
                                     Icons.psychology,
-                                    color: Colors.blue.shade700,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onPrimaryContainer,
                                     size: 28,
                                   ),
                                 ),
@@ -1544,9 +1593,9 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
 
                 children: [
 
-                  const Text(
-                    'Ram Ji',
-                    style: TextStyle(
+                  Text(
+                    userName,
+                    style: const TextStyle(
                       fontSize: 23,
                       fontWeight: FontWeight.bold,
                     ),
@@ -3253,27 +3302,27 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
             const SizedBox(height: 20),
 
             performanceCard(
-              icon: '🎯',
+              icon: Icons.gps_fixed_rounded,
               title: 'Accuracy',
               value:
                   '${accuracy.toStringAsFixed(0)}%',
             ),
 
             performanceCard(
-              icon: '⏱️',
+              icon: Icons.timer_rounded,
               title: 'Reaction Time',
               value:
                   '${reactionTime.toStringAsFixed(1)} sec',
             ),
 
             performanceCard(
-              icon: '❌',
+              icon: Icons.error_outline_rounded,
               title: 'Mistakes',
               value: '$mistakes',
             ),
 
             performanceCard(
-              icon: '🧠',
+              icon: Icons.psychology_rounded,
               title: 'Next Difficulty',
               value:
                   '$difficulty blocks',
@@ -3297,11 +3346,15 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12),
-                            color: Colors.blue.shade50,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer,
                           ),
                           child: Icon(
                             Icons.psychology,
-                            color: Colors.blue.shade700,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimaryContainer,
                             size: 28,
                           ),
                         ),
@@ -3478,7 +3531,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
   // ==========================================================
 
   Widget performanceCard({
-    required String icon,
+    required IconData icon,
     required String title,
     required String value,
   }) {
@@ -3498,12 +3551,10 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
           vertical: 5,
         ),
 
-        leading: Text(
+        leading: Icon(
           icon,
-
-          style: const TextStyle(
-            fontSize: 28,
-          ),
+          size: 28,
+          color: Colors.indigo,
         ),
 
         title: Text(
