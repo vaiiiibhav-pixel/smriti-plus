@@ -44,7 +44,7 @@ class CognitiveAI {
           "Your accuracy has decreased recently. Regular practice can help.";
       recommendation =
           "Focus on memory accuracy exercises before increasing difficulty.";
-    } else if (reactionTime > 2500) {
+    } else if (reactionTime > 15) {
       status = "Needs Practice";
       message =
           "Your responses are taking slightly longer than expected.";
@@ -974,14 +974,13 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
       return "Not enough data";
     }
 
-    final recent = scores.length >= 3
-        ? scores.sublist(scores.length - 3)
-        : scores;
+    final chronological = scores.reversed.toList();
 
-    final first = recent.first;
-    final last = recent.last;
+    final recent = chronological.length >= 3
+        ? chronological.sublist(chronological.length - 3)
+        : chronological;
 
-    final difference = last - first;
+    final difference = recent.last - recent.first;
 
     if (difference >= 10) {
       return "Improving";
@@ -1016,7 +1015,7 @@ class _CaregiverDashboardState extends State<CaregiverDashboard> {
       return "Memory accuracy appears lower than the recent target range. Consider continuing with easier exercises and encouraging short, regular practice sessions.";
     }
 
-    if (averageReaction > 2500) {
+    if (averageReaction > 15) {
       return "Response speed is relatively slow. Short, regular cognitive exercises may help maintain engagement and improve response speed.";
     }
 
