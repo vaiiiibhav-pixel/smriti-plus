@@ -24,23 +24,61 @@ Instead of simply providing a collection of games or reminders, SMRITI+ continuo
 
 ## ✨ Key Features
 
-### 🧠 Adaptive Memory Games
-
-SMRITI+ includes interactive cognitive exercises designed to encourage memory and attention.
-
-The current prototype features a **Memory Sequence Game** where users:
-
-- Observe a sequence of colored blocks
-- Memorize the sequence
-- Reproduce it by tapping the blocks
-- Receive an instant performance score
-- Get feedback based on accuracy, speed, and consistency
-
-The difficulty automatically adapts according to performance.
+### 🌟 Personalized Onboarding & Essential Permissions
+To ensure privacy, comfort, and personalized care from the very first launch, SMRITI+ introduces a 2-step onboarding experience:
+1. **Interactive Permission Manager**:
+   - Transparently requests **Microphone & Voice Access** (`RECORD_AUDIO`) for hands-free natural speech navigation.
+   - Requests **Medicine & Water Notifications** (`POST_NOTIFICATIONS`) for timely daily alerts and hydration reminders.
+   - Provides clear explanations for why each permission is essential to elderly wellness.
+2. **Personal Information & Emergency Profile**:
+   - Captures preferred name, age, caregiver / family contact details, and emergency phone numbers.
+   - Personalizes home screen greetings (*"नमस्ते, Daadaji 🙏"*), voice assistant dialogue, and caregiver monitoring records.
+   - Stores all personal data locally in an encrypted Room database table (`user_profile`).
 
 ---
 
-### 🤖 AI-Based Cognitive Analysis
+### 🎨 Modern Wellness Visual Design & Enhanced Contrast
+- **Modern Palette**: Upgraded from dull earthen tones to a vibrant, dignified Royal Sapphire Navy (`#1E3A8A`), Radiant Teal (`#0D9488`), and Warm Golden Amber (`#D97706`).
+- **High-Contrast Readability**: Pure pearl white card surfaces on clean slate background with ultra-deep ink typography (`#0F172A`) ensuring optimal legibility for elderly vision and low-light environments.
+- **Accessible Touch Targets**: Generous 48dp+ buttons, rounded tactile cards, and prominent status pills for intuitive touch navigation.
+
+---
+
+### 🧠 Cognitive Brain Hub & Multi-Exercise Suite
+
+SMRITI+ provides a neuro-adaptive suite of exercises specifically engineered for elderly users to stimulate working, semantic, and visual memory:
+
+1. **Working Memory: Pattern Sequence Game**:
+   - High-contrast, tactile colored tiles with gentle audio/visual cues
+   - Memorize and reproduce expanding rhythmic sequences
+   - Immediate feedback on accuracy, speed, and cognitive consistency
+   - Real-time adaptive difficulty scaling (Levels 1 to 5)
+
+2. **Episodic Association: Word & Picture Recall**:
+   - Card-matching exercise featuring nostalgic, everyday items (*Tea Cup, Vintage Radio, Garden Flower, Story Book, Family Home, Heritage Train*)
+   - Stimulates visual recognition pathways and semantic recall without countdown anxiety or time pressure
+   - Encourages calming cognitive engagement
+
+3. **Daily Cognitive Plan & Milestones**:
+   - **Daily Practice Streaks**: Tracks consecutive days of brain wellness activities
+   - **Personalized Daily Checklist**: Recommends short 2-3 minute cognitive routines
+   - **Achievement Badges**: Unlocks milestone rewards (*First Step, Sharp Recall, Zen Master*) to motivate daily consistency
+
+---
+
+### 📖 Stored Memories & Reminiscence Life Timeline
+
+Reminiscence therapy is a proven, non-pharmacological approach to reducing anxiety and stimulating long-term memory for older adults and individuals with memory loss.
+
+- **Visual Chronological Spine**: Connects life stories with an aesthetic timeline spine, era tags, and milestone badges
+- **Reminiscence Audio Playback**: Integrated Text-to-Speech reads life stories aloud in a gentle, warm voice
+- **Life Categories**: Segregates memories across *Family, Milestones, Travel, Celebrations, Childhood, and Daily Joy*
+- **Sentiment & Mood Indicators**: Captures emotional context (*Joyful, Heartwarming, Nostalgic, Proud, Peaceful*)
+- **Instant Search & Archive**: Fast keyword search by people, places, or dates, with an accessible memory creation dialog
+
+---
+
+### 🤖 AI-Based Cognitive Analysis & Adaptive Engine
 
 SMRITI+ analyzes gameplay performance using multiple indicators:
 
@@ -128,92 +166,89 @@ The prototype currently demonstrates the reminder interface and interaction flow
 
 ---
 
-### 💾 Local Performance Tracking
+### 💾 Local Offline-First Persistence (Room Database)
 
-User performance is stored locally using `shared_preferences`.
+All user data is stored securely and privately on-device using **Android Room Database** with reactive Kotlin Flow streaming:
 
 The application tracks:
 
-- Game scores
-- Accuracy
-- Reaction time
-- Mistakes
-- Difficulty
-- Recent performance history
+- 🧩 **Game Sessions**: Sequence scores, accuracy, reaction time, mistakes, timestamps
+- 🏆 **Cognitive Metrics**: Running score averages, difficulty level, session count, clinical wellness trends
+- 💊 **Medication & Hydration Reminders**: Names, schedules, categories, completion status
+- 📖 **Stored Memories**: Life stories, milestone dates, category tags, emotional sentiment indicators
 
-The prototype maintains recent game history and uses it for personalized analysis.
+The system functions 100% offline without mandatory internet connectivity, safeguarding elderly privacy.
 
 ---
 
 ## 🏗️ System Architecture
 
 ```text
-                 ┌─────────────────────────┐
-                 │       SMRITI+ App       │
-                 │       Flutter UI        │
-                 └────────────┬────────────┘
-                              │
-              ┌───────────────┼────────────────┐
-              │               │                │
-              ▼               ▼                ▼
-        ┌───────────┐   ┌────────────┐   ┌─────────────┐
-        │ Cognitive │   │   Voice    │   │  Reminders  │
-        │   Games   │   │ Assistant  │   │             │
-        └─────┬─────┘   └────────────┘   └─────────────┘
-              │
-              ▼
-       ┌────────────────┐
-       │ Performance    │
-       │   Tracking     │
-       └───────┬────────┘
-               │
-               ▼
-       ┌────────────────┐
-       │ Cognitive AI   │
-       │    Analysis    │
-       └───────┬────────┘
-               │
-       ┌───────┴────────┐
-       │                │
-       ▼                ▼
-┌──────────────┐  ┌───────────────┐
-│ Adaptive     │  │   Caregiver   │
-│ Difficulty   │  │   Dashboard   │
-└──────────────┘  └───────────────┘
+                 ┌─────────────────────────────────────────┐
+                 │             SMRITI+ Platform            │
+                 │   Modern Android (Jetpack Compose / M3) │
+                 └────────────────────┬────────────────────┘
+                                      │
+        ┌─────────────────────────────┼─────────────────────────────┐
+        │                             │                             │
+        ▼                             ▼                             ▼
+  ┌───────────┐                 ┌───────────┐                 ┌─────────────┐
+  │ Cognitive │                 │   Voice   │                 │   Stored    │
+  │ Brain Hub │                 │ Assistant │                 │  Memories   │
+  │ (Sequences│                 │ (Speech & │                 │  Timeline   │
+  │  & Recall)│                 │    TTS)   │                 │ (Reminisce) │
+  └─────┬─────┘                 └─────┬─────┘                 └──────┬──────┘
+        │                             │                              │
+        └──────────────────────┬──────┴──────────────────────────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │  SmritiViewModel     │
+                    │  (StateFlow / MVVM)  │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+        ┌──────────────────────────────────────────────┐
+        │              Offline Data Layer              │
+        │      Room Database (Entities, DAOs, Flow)    │
+        │ ┌───────────┬─────────────┬────────────────┐ │
+        │ │ Reminders │ GameSession │ StoredMemories │ │ │
+        │ └───────────┴─────────────┴────────────────┘ │
+        └──────────────────────┬───────────────────────┘
+                               │
+                ┌──────────────┴──────────────┐
+                ▼                             ▼
+      ┌──────────────────┐          ┌───────────────────┐
+      │ Adaptive Engine  │          │    Caregiver      │
+      │ & AI Insights    │          │    Dashboard      │
+      └──────────────────┘          └───────────────────┘
 ```
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Frontend
+### Android & UI Architecture
 
-- **Flutter**
-- **Dart**
-- Material Design
+- **Language**: Kotlin 100%
+- **UI Toolkit**: Jetpack Compose (Declarative UI)
+- **Design System**: Material Design 3 (M3) with warm, high-contrast, elder-friendly accessibility
+- **Architecture**: MVVM (Model-View-ViewModel) + Clean Architecture
+- **State Management**: Kotlin Coroutines & `MutableStateFlow` with lifecycle-aware collection
+- **Navigation**: Navigation Compose with type-safe screen destinations
 
-### AI / Logic
+### Local Persistence & Offline-First
 
-- Adaptive difficulty algorithm
-- Cognitive performance scoring
-- Rule-based AI analysis
-- Performance trend analysis
+- **Database**: Android Room Database (SQLite abstraction)
+- **Annotation Processing**: KSP (Kotlin Symbol Processing)
+- **Data Entities**: `ReminderItem`, `GameSession`, `StoredMemory`, `CaregiverMetrics`
+- **Reactive Streaming**: Kotlin Flow for immediate UI updates
 
-### Voice
+### Cognitive Engine & Voice
 
-- `speech_to_text`
-- `flutter_tts`
-
-### Local Storage
-
-- `shared_preferences`
-
-### Planned Backend
-
-- Python
-- FastAPI
-- SQLite
-- Firebase / Cloud synchronization
+- **Cognitive AI**: Neuro-adaptive difficulty adjustment, pattern error detection, and multi-metric scoring
+- **Speech Recognition**: Android SpeechRecognizer integration
+- **Audio Output**: Android Text-to-Speech (TTS) for reminiscence storytelling and conversational feedback
 
 ---
 
@@ -272,167 +307,89 @@ This creates a continuous feedback loop:
 
 ### Elderly User
 
-- Home Dashboard
-- Memory Games
-- Voice Assistant
-- Reminders
-- Performance Feedback
+- **Home Dashboard**: High-contrast, card-based navigation with greeting, date, and quick action cards
+- **Cognitive Brain Hub**:
+  - *Pattern Sequence*: Visual rhythm and working memory reproduction
+  - *Word & Picture Recall*: Nostalgic object association matching
+  - *Daily Brain Plan*: Daily streak tracker, exercise checklists, and milestone reward badges
+- **Stored Memories Timeline**: Visual life story milestone cards, category filtering, sentiment tags, and reminiscence audio playback
+- **Voice Assistant**: Natural voice interaction with intent-based navigation and bilingual cues
+- **Smart Reminders**: Medication schedules, water reminders, and completion check-offs
+- **Performance Feedback**: Immediate praise, clear round stats, and difficulty indicators
 
 ### Caregiver
 
-- Cognitive Wellness Overview
-- Performance Statistics
-- Recent Activity
-- AI Cognitive Insights
-- Performance Trends
-- Medication & Reminder Monitoring
+- **Cognitive Wellness Overview**: Real-time cognitive score, accuracy, and clinical status
+- **Performance Statistics**: Session logs, reaction time averages, mistake distributions
+- **Recent Activity**: Chronological logs of cognitive sessions and completion metrics
+- **AI Cognitive Insights**: Contextual advice, performance trends, and stability assessment
+- **Medication & Reminder Monitoring**: Track missed or completed medication events
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Android (Native Kotlin & Jetpack Compose)
 
-Make sure you have:
+This project contains the modern native Android app built with Kotlin, Jetpack Compose, and Room Database under `/app`.
 
-- Flutter SDK
-- Dart SDK
-- Android Studio
-- Android SDK
-- Android device or emulator
+#### Prerequisites
 
-Check Flutter installation:
+- Android Studio Meerkat or newer
+- JDK 17 or higher
+- Android SDK 34/35
 
-```bash
-flutter doctor
-```
+#### Build & Run via Gradle
 
----
-
-### Clone the Repository
+To compile the Android application:
 
 ```bash
-git clone https://github.com/vaiiiibhav-pixel/smriti-plus.git
+gradle :app:assembleDebug
 ```
 
-Navigate into the project:
+To run automated unit tests:
 
 ```bash
-cd smriti-plus
-```
-
----
-
-### Install Dependencies
-
-```bash
-flutter pub get
-```
-
----
-
-### Run the Application
-
-For a connected Android device:
-
-```bash
-flutter run
-```
-
-For Windows:
-
-```bash
-flutter run -d windows
-```
-
-For Chrome:
-
-```bash
-flutter run -d chrome
-```
-
----
-
-## 📦 Build APK
-
-To generate a debug APK:
-
-```bash
-flutter build apk --debug
-```
-
-The generated APK will be available at:
-
-```text
-build/app/outputs/flutter-apk/app-debug.apk
-```
-
-For a release build:
-
-```bash
-flutter build apk --release
-```
-
----
-
-## 🧪 Testing
-
-Run Flutter tests with:
-
-```bash
-flutter test
-```
-
-Analyze the project with:
-
-```bash
-flutter analyze
+gradle :app:testDebugUnitTest
 ```
 
 ---
 
 ## 🗺️ Roadmap
 
-### ✅ Phase 1 — Prototype
+### ✅ Phase 1 — Foundation & Core Features
 
-- [x] Elderly-friendly home screen
-- [x] Memory Sequence game
-- [x] Performance scoring
-- [x] Adaptive difficulty
-- [x] Local performance storage
-- [x] Caregiver dashboard
-- [x] AI cognitive analysis
-- [x] Voice assistant
-- [x] Text-to-speech
-- [x] Reminder interface
-- [x] Android prototype
+- [x] Elderly-friendly home screen with large touch targets (48dp+)
+- [x] Working Memory Sequence exercise
+- [x] Multi-metric performance scoring (Accuracy, Speed, Consistency)
+- [x] Adaptive difficulty engine (Levels 1 to 5)
+- [x] Caregiver monitoring dashboard with clinical indicators
+- [x] AI-driven cognitive analysis & trend summaries
+- [x] Voice assistant with voice input & text-to-speech feedback
+- [x] Interactive medication & hydration reminders
+- [x] Offline-first Room Database architecture
 
-### 🔄 Phase 2 — Intelligent Personalization
+### ✅ Phase 2 — Intelligent Personalization & Reminiscence
 
-- [ ] More cognitive games
-- [ ] Advanced AI personalization
-- [ ] Long-term cognitive trends
-- [ ] Personalized daily exercise plans
-- [ ] More regional languages
-- [ ] Improved voice interaction
+- [x] **Cognitive Brain Hub**: Multi-exercise hub (Pattern Sequence + Word & Picture Recall)
+- [x] **Word & Picture Association**: Card-matching exercise with nostalgic everyday objects
+- [x] **Stored Memories Visual Timeline**: Life milestones with category filters & sentiment badges
+- [x] **Reminiscence Audio Narration**: Text-to-speech audio storytelling for cherished memories
+- [x] **Daily Brain Wellness Plan**: Daily practice streaks, routines, and milestone badges (*First Step, Sharp Recall, Zen Master*)
 
 ### ☁️ Phase 3 — Cloud & Caregiver Ecosystem
 
-- [ ] FastAPI backend
-- [ ] Firebase integration
-- [ ] Secure cloud synchronization
-- [ ] Caregiver accounts
-- [ ] Multi-user support
-- [ ] Cross-device synchronization
-- [ ] Offline-first synchronization
+- [ ] Firebase / Cloud secure synchronization
+- [ ] Caregiver remote multi-device access
+- [ ] Cross-device notification alerts for missed medications
+- [ ] Multi-lingual speech recognition (Hindi, Marathi, Tamil, Spanish)
 
-### 🚀 Phase 4 — Advanced Platform
+### 🚀 Phase 4 — Clinical & Wearable Integration
 
-- [ ] More sophisticated cognitive assessment
-- [ ] Personalized wellness recommendations
-- [ ] Advanced caregiver analytics
-- [ ] Wearable/device integration
-- [ ] Doctor/care-team integration
+- [ ] Smartwatch heart rate & step telemetry integration
+- [ ] Longitudinal cognitive decline trend detection
+- [ ] Exportable PDF clinical reports for healthcare providers
+- [ ] Emergency SOS quick contact auto-dialer
 - [ ] Large-scale deployment
 
 ---

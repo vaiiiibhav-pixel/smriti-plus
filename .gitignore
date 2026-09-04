@@ -46,3 +46,13 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Android build outputs and caches
+.gradle/
+.build-outputs/
+app/build/
+build/
+*.hprof
+.metadata
+debug.keystore
+debug.keystore.base64
